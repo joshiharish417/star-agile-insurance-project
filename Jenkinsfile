@@ -50,21 +50,26 @@ node{
             
         }
         
-    stage('Configure and Deploy to the test-server'){
-                withCredentials([sshUserPrivateKey(credentialsId: 'Testenv_Key', keyFileVariable: 'EC2_SSH_KEY_TEST')]) {
-                    ansiblePlaybook(
-                        installation: 'ansible',
-                        playbook: 'ansible-playbook.yml',
-                        inventory: 'inventory.ini',
-                        disableHostKeyChecking: true,
-                        become: true,
-                        becomeUser: 'root',
-                        executable: '/usr/bin/ansible-playbook',
-                        extras: "--private-key=${EC2_SSH_KEY_TEST} -e env=test -e docker_image=joshiharish417/insure-me:${tagName}"
-                    )
-                }
-            
+    stage('Configure and Deploy to the test-server') {
+        withCredentials([
+            sshUserPrivateKey(
+                credentialsId: 'Testenv_Key',
+                keyFileVariable: 'EC2_SSH_KEY_TEST',
+                usernameVariable: 'SSH_USER' // Optional, but useful
+            )
+            ]) {
+            ansiblePlaybook(
+                installation: 'ansible',
+                playbook: 'ansible-playbook.yml',
+                inventory: 'inventory.ini',
+                disableHostKeyChecking: true,
+                become: true,
+                becomeUser: 'root',
+                extras: """--private-key=$EC2_SSH_KEY_TEST -e env=test -e docker_image=joshiharish417/insure-me:${tagName}"""
+            )
+        }
     }
+
         
         
     }
