@@ -51,7 +51,7 @@ node{
         }
         
     stage('Configure and Deploy to the test-server'){
-                withCredentials([sshUserPrivateKey(credentialsId: 'Test_Key', keyFileVariable: 'EC2_SSH_KEY_TEST')]) {
+                withCredentials([sshUserPrivateKey(credentialsId: 'Testenv_Key', keyFileVariable: 'EC2_SSH_KEY_TEST')]) {
                     ansiblePlaybook(
                         installation: 'ansible',
                         playbook: 'ansible-playbook.yml',
