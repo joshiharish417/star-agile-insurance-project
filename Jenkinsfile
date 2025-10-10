@@ -51,8 +51,20 @@ node{
         }
         
     stage('Configure and Deploy to the test-server'){
-        ansiblePlaybook become: true, disableHostKeyChecking: true, installation: 'ansible', inventory: '/etc/ansible/hosts', playbook: 'ansible-playbook.yml', becomeUser: 'root', executable: '/usr/bin/ansible-playbook'
-        extras: "-e docker_image=joshiharish417/insure-me:${tagName}"
+        steps {
+                withCredentials([sshUserPrivateKey(credentialsId: 'Test_Key', keyFileVariable: 'EC2_SSH_KEY_TEST')]) {
+                    ansiblePlaybook(
+                        installation: 'ansible',
+                        playbook: 'ansible-playbook.yml',
+                        inventory: 'inventory.ini',
+                        disableHostKeyChecking: true,
+                        become: true,
+                        becomeUser: 'root',
+                        executable: '/usr/bin/ansible-playbook',
+                        extras: "--private-key=${EC2_SSH_KEY_TEST} -e env=test -e docker_image=joshiharish417/${DOCKER_IMAGE}:${tagName}"
+                    )
+                }
+            }
     }
         
         
