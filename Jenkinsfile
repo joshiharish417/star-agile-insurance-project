@@ -51,7 +51,7 @@ node{
         }
         
     stage('Configure and Deploy to the test-server'){
-        ansiblePlaybook become: true, disableHostKeyChecking: true, installation: 'ansible', inventory: '/etc/ansible/hosts', playbook: 'ansible-playbook.yml',
+        ansiblePlaybook become: true, disableHostKeyChecking: true, installation: 'ansible', inventory: '/etc/ansible/hosts', playbook: 'ansible-playbook.yml', become: true, becomeUser: 'root', executable: '/usr/bin/ansible-playbook'
         extras: "-e docker_image=joshiharish417/insure-me:${tagName}"
     }
         
