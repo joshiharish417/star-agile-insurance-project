@@ -51,7 +51,6 @@ node{
         }
         
     stage('Configure and Deploy to the test-server'){
-        steps {
                 withCredentials([sshUserPrivateKey(credentialsId: 'Test_Key', keyFileVariable: 'EC2_SSH_KEY_TEST')]) {
                     ansiblePlaybook(
                         installation: 'ansible',
@@ -64,7 +63,7 @@ node{
                         extras: "--private-key=${EC2_SSH_KEY_TEST} -e env=test -e docker_image=joshiharish417/${DOCKER_IMAGE}:${tagName}"
                     )
                 }
-            }
+            
     }
         
         
