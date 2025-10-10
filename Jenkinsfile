@@ -60,7 +60,7 @@ node{
                         become: true,
                         becomeUser: 'root',
                         executable: '/usr/bin/ansible-playbook',
-                        extras: "--private-key=${EC2_SSH_KEY_TEST} -e env=test -e docker_image=joshiharish417/${DOCKER_IMAGE}:${tagName}"
+                        extras: "--private-key=${EC2_SSH_KEY_TEST} -e env=test -e docker_image=joshiharish417/insure-me:${tagName}"
                     )
                 }
             
