@@ -49,34 +49,6 @@
         name: docker-ce
         state: present
 
-    - name: Install dependencies for ChromeDriver
-      apt:
-        name:
-          - wget
-          - unzip
-          - xvfb
-          - libxi6
-          - libgconf-2-4
-          - libnss3
-          - libatk-bridge2.0-0
-          - libxss1
-          - libasound2
-        state: present
-        update_cache: yes
-    
-    - name: Install Google Chrome
-      shell: |
-        wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-        apt install -y ./google-chrome-stable_current_amd64.deb
-    
-    - name: Install ChromeDriver
-      shell: |
-        CHROME_DRIVER_VERSION=$(curl -sS https://chromedriver.storage.googleapis.com/LATEST_RELEASE)
-        wget https://chromedriver.storage.googleapis.com/${CHROME_DRIVER_VERSION}/chromedriver_linux64.zip
-        unzip chromedriver_linux64.zip
-        mv chromedriver /usr/bin/chromedriver
-        chmod +x /usr/bin/chromedriver
-
 
     - name: Enable and start Docker service
       systemd:
