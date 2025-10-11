@@ -51,13 +51,8 @@ node{
         }
         
     stage('Configure and Deploy to the test-server') {
-        withCredentials([
-            sshUserPrivateKey(
-                credentialsId: 'Testenv_Key',
-                keyFileVariable: 'EC2_SSH_KEY_TEST',
-                usernameVariable: 'SSH_USER' // Optional, but useful
-            )
-            ]) {
+        withCredentials([sshUserPrivateKey(credentialsId: 'Testenv_Key', keyFileVariable: 'EC2_SSH_KEY_TEST')]) {
+        try {
             ansiblePlaybook(
                 installation: 'ansible',
                 playbook: 'ansible-playbook.yml',
@@ -65,9 +60,14 @@ node{
                 disableHostKeyChecking: true,
                 become: true,
                 becomeUser: 'root',
-                extras: """--private-key=$EC2_SSH_KEY_TEST -e env=test -e docker_image=joshiharish417/insure-me:${tagName}"""
+                extras: "--private-key=${EC2_SSH_KEY_TEST} -e env=test -e docker_image=joshiharish417/insure-me:${tagName}"
             )
+            echo "Ansible playbook succeeded"
+        } catch (Exception e) {
+            echo "Ansible playbook failed with: ${e.getMessage()}"
+            error("Stopping pipeline due to Ansible failure")
         }
+    }
     }
 
         
