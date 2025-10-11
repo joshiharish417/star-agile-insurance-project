@@ -34,7 +34,17 @@ node{
     }
     
     stage('publish test reports'){
-        publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: '/var/lib/jenkins/workspace/Insure_me/target/surefire-reports', reportFiles: 'index.html', reportName: 'HTML Report', reportTitles: '', useWrapperFileDirectly: true])
+        echo "Test report path: ${env.WORKSPACE}/target/surefire-reports"
+        publishHTML([
+        allowMissing: false,
+        alwaysLinkToLastBuild: false,
+        keepAll: false,
+        reportDir: "${env.WORKSPACE}/target/surefire-reports",
+        reportFiles: 'index.html',
+        reportName: 'HTML Report',
+        reportTitles: '',
+        useWrapperFileDirectly: true
+        ])
     }
     
     stage('Containerize the application'){
@@ -63,14 +73,34 @@ node{
                 extras: "--private-key=${EC2_SSH_KEY_TEST} -e env=test -e docker_image=joshiharish417/insure-me:${tagName}"
             )
             echo "Ansible playbook succeeded"
-        } catch (Exception e) {
-            echo "Ansible playbook failed with: ${e.getMessage()}"
-            error("Stopping pipeline due to Ansible failure")
+            } catch (Exception e) {
+                echo "Ansible playbook failed with: ${e.getMessage()}"
+                error("Stopping pipeline due to Ansible failure")
+                }
+            }
         }
-    }
+        
+    stage('Run Selenium Tests') {
+        echo 'Running Selenium tests on test environment'
+        sh "java -jar selenium-insure-me-runnable.jar http://13.126.40.86:8084/"
     }
 
-        
+        stage('Deploy to Production') {
+            input message: 'Selenium tests passed. Proceed to production deployment?'
+            
+            withCredentials([sshUserPrivateKey(credentialsId: 'Prodenv_Key', keyFileVariable: 'EC2_SSH_KEY_PROD')]) {
+                ansiblePlaybook(
+                    installation: 'ansible',
+                    playbook: 'ansible-playbook.yml',
+                    inventory: 'prod_inventory.ini',
+                    disableHostKeyChecking: true,
+                    become: true,
+                    becomeUser: 'root',
+                    extras: "--private-key=${EC2_SSH_KEY_PROD} -e env=prod -e docker_image=joshiharish417/insure-me:${tagName}"
+                )
+            }
+        }
+      
         
     }
 }
