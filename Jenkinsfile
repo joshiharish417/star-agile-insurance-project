@@ -80,17 +80,15 @@ node{
             }
         }
 
-            stage('Debug Chromedriver Access') {
-                steps {
-                    sh '''
-                        echo "USER: $(whoami)"
-                        echo "Checking ChromeDriver location..."
-                        which chromedriver || echo "chromedriver not in path"
-                        chromedriver --version || echo "chromedriver command failed"
-                        ls -l /usr/bin/chromedriver || echo "chromedriver not found"
-                        echo "PATH is: $PATH"
-                    '''
-                }
+        stage('Debug Chromedriver Access') {
+                sh '''
+                    echo "USER: $(whoami)"
+                    echo "Checking ChromeDriver location..."
+                    which chromedriver || echo "chromedriver not in path"
+                    chromedriver --version || echo "chromedriver command failed"
+                    ls -l /usr/bin/chromedriver || echo "chromedriver not found"
+                    echo "PATH is: $PATH"
+                '''
         }
         stage('Run Selenium Tests') {
             echo 'Running Selenium tests on test environment'
