@@ -81,13 +81,18 @@ node{
         }
 
         stage('Run Selenium Tests on EC2') {
-                    withCredentials([sshUserPrivateKey(credentialsId: 'Testenv_Key', keyFileVariable: 'EC2_SSH_KEY')]) {
-                        sh '''
-                            ssh -i $EC2_SSH_KEY -o StrictHostKeyChecking=no ubuntu@13.126.40.86 \
-                            "cd /home/ubuntu/app && java -Dwebdriver.chrome.driver=/usr/bin/chromedriver -jar selenium-insure-me-runnable.jar http://localhost:8080/"
-                        '''
-                    }
+            withCredentials([sshUserPrivateKey(credentialsId: 'Testenv_Key', keyFileVariable: 'EC2_SSH_KEY')]) {
+                sh '''
+                    echo "Copying JAR to EC2..."
+                    scp -i $EC2_SSH_KEY -o StrictHostKeyChecking=no selenium-insure-me-runnable.jar ubuntu@13.126.40.86:/home/ubuntu/
+        
+                    echo "Running Selenium tests on EC2..."
+                    ssh -i $EC2_SSH_KEY -o StrictHostKeyChecking=no ubuntu@13.126.40.86 \
+                    "java -Dwebdriver.chrome.driver=/usr/bin/chromedriver -jar /home/ubuntu/selenium-insure-me-runnable.jar http://localhost:8080/"
+                '''
+            }
         }
+
 
         stage('Deploy to Production') {
             input message: 'Selenium tests passed. Proceed to production deployment?'
