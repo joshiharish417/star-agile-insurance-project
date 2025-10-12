@@ -85,7 +85,7 @@ node{
             withEnv(["PATH+CHROME=/usr/bin"]) {
             sh 'which chromedriver'
             sh 'chromedriver --version'
-            sh 'xvfb-run -a java -jar selenium-insure-me-runnable.jar http://13.126.40.86:8084/'
+            sh 'java -Dwebdriver.chrome.driver=/usr/bin/chromedriver -jar selenium-insure-me-runnable.jar http://13.126.40.86:8084/'
             }
         }
 
