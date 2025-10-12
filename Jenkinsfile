@@ -80,19 +80,13 @@ node{
             }
         }
 
-        stage('Debug Chromedriver Access') {
-                sh '''
-                    echo "USER: $(whoami)"
-                    echo "Checking ChromeDriver location..."
-                    which chromedriver || echo "chromedriver not in path"
-                    chromedriver --version || echo "chromedriver command failed"
-                    ls -l /usr/bin/chromedriver || echo "chromedriver not found"
-                    echo "PATH is: $PATH"
-                '''
-        }
-        stage('Run Selenium Tests') {
-            echo 'Running Selenium tests on test environment'
-            sh 'java -Dwebdriver.chrome.driver=/usr/bin/chromedriver -jar selenium-insure-me-runnable.jar http://13.126.40.86:8084/'
+        stage('Run Selenium Tests on EC2') {
+                    withCredentials([sshUserPrivateKey(credentialsId: 'Testenv_Key', keyFileVariable: 'EC2_SSH_KEY')]) {
+                        sh '''
+                            ssh -i $EC2_SSH_KEY -o StrictHostKeyChecking=no ubuntu@13.126.40.86 \
+                            "cd /home/ubuntu/app && java -Dwebdriver.chrome.driver=/usr/bin/chromedriver -jar selenium-insure-me-runnable.jar http://localhost:8080/"
+                        '''
+                    }
         }
 
         stage('Deploy to Production') {
