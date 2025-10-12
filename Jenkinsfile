@@ -5,7 +5,7 @@ node{
     def docker
     def dockerCMD
     def tagName
-    
+    def PATH
     stage('prepare enviroment'){
         echo 'initialize all the variables'
         mavenHome = tool name: 'mymaven' , type: 'maven'
@@ -79,14 +79,22 @@ node{
                 }
             }
         }
-        
+
+            stage('Debug Chromedriver Access') {
+                steps {
+                    sh '''
+                        echo "USER: $(whoami)"
+                        echo "Checking ChromeDriver location..."
+                        which chromedriver || echo "chromedriver not in path"
+                        chromedriver --version || echo "chromedriver command failed"
+                        ls -l /usr/bin/chromedriver || echo "chromedriver not found"
+                        echo "PATH is: $PATH"
+                    '''
+                }
+        }
         stage('Run Selenium Tests') {
             echo 'Running Selenium tests on test environment'
-            withEnv(["PATH+CHROME=/usr/bin"]) {
-            sh 'which chromedriver'
-            sh 'chromedriver --version'
             sh 'java -Dwebdriver.chrome.driver=/usr/bin/chromedriver -jar selenium-insure-me-runnable.jar http://13.126.40.86:8084/'
-            }
         }
 
         stage('Deploy to Production') {
