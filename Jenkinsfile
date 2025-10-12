@@ -80,10 +80,14 @@ node{
             }
         }
         
-    stage('Run Selenium Tests') {
-        echo 'Running Selenium tests on test environment'
-        sh "java -jar selenium-insure-me-runnable.jar http://13.126.40.86:8084/"
-    }
+        stage('Run Selenium Tests') {
+            echo 'Running Selenium tests on test environment'
+            withEnv(["PATH+CHROME=/usr/bin"]) {
+            sh 'which chromedriver'
+            sh 'chromedriver --version'
+            sh 'xvfb-run -a java -jar selenium-insure-me-runnable.jar http://13.126.40.86:8084/'
+            }
+        }
 
         stage('Deploy to Production') {
             input message: 'Selenium tests passed. Proceed to production deployment?'
