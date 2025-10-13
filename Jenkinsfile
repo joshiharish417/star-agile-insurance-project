@@ -77,32 +77,34 @@ stage('Run UI Tests on EC2') {
     withCredentials([sshUserPrivateKey(credentialsId: 'Testenv_Key', keyFileVariable: 'SSH_KEY')]) {
         sh '''
             chmod 600 ${SSH_KEY}
-            echo "Installing Chrome + ChromeDriver..."
+            
+            echo "Setting up EC2 instance for UI tests..."
             ssh -o StrictHostKeyChecking=no -i ${SSH_KEY} ubuntu@13.126.40.86 "
-                sudo apt update &&
+
+                # Clean up any existing content
+                rm -rf /home/ubuntu/star-agile-insurance-project/*
+                
+                # Create project directory
+                mkdir -p /home/ubuntu/star-agile-insurance-project/
+                
+                # Update and install dependencies
+                sudo apt update
                 sudo apt install -y google-chrome-stable unzip wget || true
-            "
-        '''
-        
-        sh '''
-            ssh -o StrictHostKeyChecking=no -i ${SSH_KEY} ubuntu@13.126.40.86 "
-                wget -q https://chromedriver.storage.googleapis.com/114.0.5735.90/chromedriver_linux64.zip &&
-                unzip -o chromedriver_linux64.zip &&
-                sudo mv chromedriver /usr/bin/ &&
+                
+                # Install ChromeDriver
+                wget -q https://chromedriver.storage.googleapis.com/114.0.5735.90/chromedriver_linux64.zip
+                unzip -o chromedriver_linux64.zip
+                sudo mv chromedriver /usr/bin/
                 sudo chmod +x /usr/bin/chromedriver
             "
-        '''
-        
-        sh '''
+            
             echo "Copying project to EC2..."
             scp -o StrictHostKeyChecking=no -i ${SSH_KEY} -r . ubuntu@13.126.40.86:/home/ubuntu/star-agile-insurance-project/
-        '''
-        
-        sh '''
+            
             echo "Running UI Tests..."
             ssh -o StrictHostKeyChecking=no -i ${SSH_KEY} ubuntu@13.126.40.86 "
-                cd /home/ubuntu/star-agile-insurance-project &&
-                export TEST_ENV_URL=http://13.126.40.86:8080 &&
+                cd /home/ubuntu/star-agile-insurance-project
+                export TEST_ENV_URL=http://13.126.40.86:8080
                 mvn verify -DskipUnitTests=true
             "
         '''
