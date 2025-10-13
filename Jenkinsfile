@@ -73,38 +73,42 @@ node {
         }
     }
 
-    stage('Run Selenium UI Tests') {
-        echo "🧪 Running Selenium UI Tests on Test Environment..."
-        withCredentials([sshUserPrivateKey(credentialsId: 'Testenv_Key', keyFileVariable: 'EC2_SSH_KEY_TEST')]) {
-            sshagent(credentials: ['Testenv_Key']) {
-                // Replace the URL below with your test environment URL or domain
-                def TEST_ENV_URL = "http://13.126.40.86:8080"
-
-                sh """
-                    echo "Installing Chrome + ChromeDriver (if not already installed)..."
-                    ssh -o StrictHostKeyChecking=no -i ${EC2_SSH_KEY_TEST} ubuntu@13.126.40.86 '
-                        sudo apt update &&
-                        sudo apt install -y google-chrome-stable ||
-                        echo "Chrome already installed"
-                    '
-                    ssh -o StrictHostKeyChecking=no -i ${EC2_SSH_KEY_TEST} ubuntu@13.126.40.86 '
-                        sudo apt install -y unzip wget &&
-                        wget -q https://chromedriver.storage.googleapis.com/114.0.5735.90/chromedriver_linux64.zip &&
-                        unzip -o chromedriver_linux64.zip &&
-                        sudo mv chromedriver /usr/bin/ &&
-                        sudo chmod +x /usr/bin/chromedriver
-                    '
-
-                    echo "Running UI Tests on EC2 via Maven Failsafe..."
-                    ssh -o StrictHostKeyChecking=no -i ${EC2_SSH_KEY_TEST} ubuntu@13.126.40.86 '
-                        cd /home/ubuntu/star-agile-insurance-project &&
-                        export TEST_ENV_URL=${TEST_ENV_URL} &&
-                        mvn verify -DskipUnitTests=true
-                    '
-                """
-            }
+    stage('Run UI Tests on EC2') {
+    steps {
+        sshagent(['ec2-ssh-key-test']) {
+            sh '''
+                echo "Installing Chrome + ChromeDriver..."
+                ssh -o StrictHostKeyChecking=no ubuntu@13.126.40.86 "
+                    sudo apt update &&
+                    sudo apt install -y google-chrome-stable unzip wget || true
+                "
+            '''
+            
+            sh '''
+                ssh -o StrictHostKeyChecking=no ubuntu@13.126.40.86 "
+                    wget -q https://chromedriver.storage.googleapis.com/114.0.5735.90/chromedriver_linux64.zip &&
+                    unzip -o chromedriver_linux64.zip &&
+                    sudo mv chromedriver /usr/bin/ &&
+                    sudo chmod +x /usr/bin/chromedriver
+                "
+            '''
+            
+            sh '''
+                echo "Copying project to EC2..."
+                scp -o StrictHostKeyChecking=no -r . ubuntu@13.126.40.86:/home/ubuntu/star-agile-insurance-project/
+            '''
+            
+            sh '''
+                echo "Running UI Tests..."
+                ssh -o StrictHostKeyChecking=no ubuntu@13.126.40.86 "
+                    cd /home/ubuntu/star-agile-insurance-project &&
+                    export TEST_ENV_URL=http://13.126.40.86:8080 &&
+                    mvn verify -DskipUnitTests=true
+                "
+            '''
         }
     }
+}
 
     stage('Deploy to Production') {
         input message: '✅ Selenium tests passed. Proceed to Production Deployment?'
