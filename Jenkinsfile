@@ -74,7 +74,6 @@ node {
     }
 
     stage('Run UI Tests on EC2') {
-    steps {
         sshagent(['ec2-ssh-key-test']) {
             sh '''
                 echo "Installing Chrome + ChromeDriver..."
@@ -107,7 +106,6 @@ node {
                 "
             '''
         }
-    }
 }
 
     stage('Deploy to Production') {
