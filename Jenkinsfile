@@ -27,16 +27,12 @@ node {
         }
     }
 
-    stage('Build Application') {
-        echo "🛠️ Cleaning, compiling, and packaging..."
-        sh "${mavenCMD} clean package -DskipTests"
+    stage('Build the Application') {
+        echo "Cleaning, compiling, and packaging..."
+        // Runs only unit tests (not UI)
+        sh "${mavenCMD} clean package"
     }
-
-    stage('Run Unit Tests') {
-        echo "Running backend unit tests..."
-        sh "${mavenCMD} test"
-    }
-
+    
     stage('Publish Test Reports') {
         echo "Publishing test reports..."
         publishHTML([
