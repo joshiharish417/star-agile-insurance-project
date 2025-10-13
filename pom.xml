@@ -10,22 +10,21 @@
     <version>1.0</version>
     <packaging>jar</packaging>
 
-    <!-- Use Spring Boot 3.x for Java 21 compatibility -->
+    <!-- Use Spring Boot 2.7.x for javax.persistence compatibility -->
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.2.0</version>
+        <version>2.7.18</version>  <!-- Last 2.7.x version with Java 21 support -->
         <relativePath/>
     </parent>
 
     <properties>
-        <java.version>21</java.version>
+        <java.version>17</java.version>  <!-- Downgrade to Java 17 for better compatibility -->
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
     </properties>
 
     <dependencies>
-
         <!-- ✅ Spring Boot Starter Web (for REST controllers) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -45,49 +44,32 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- ✅ Spring Boot Starter Test (for InsureMeApplicationTest.java) -->
+        <!-- ✅ Spring Boot Starter Test -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
 
-        <!-- ✅ JUnit 5 (versions managed by Spring Boot parent) -->
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-api</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-engine</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-        <!-- ✅ Selenium (for InsureMeUITest.java only) -->
+        <!-- ✅ Selenium -->
         <dependency>
             <groupId>org.seleniumhq.selenium</groupId>
             <artifactId>selenium-java</artifactId>
             <scope>test</scope>
         </dependency>
-
     </dependencies>
 
     <build>
         <plugins>
-
-            <!-- ✅ Maven Surefire Plugin (JUnit 5 compatible) -->
+            <!-- ✅ Maven Surefire Plugin -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.1.2</version>
                 <configuration>
-                    <!-- Exclude UI tests from default build -->
                     <excludes>
                         <exclude>**/*UITest.java</exclude>
                     </excludes>
-                    <!-- Include only if manually specified -->
                     <includes>
                         <include>**/*Test.java</include>
                     </includes>
@@ -99,8 +81,6 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
-
         </plugins>
     </build>
-
 </project>
