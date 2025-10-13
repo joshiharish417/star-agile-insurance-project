@@ -73,51 +73,45 @@ node {
     }
 }
 
-stage('Run UI Tests on EC2') {
-    withCredentials([sshUserPrivateKey(credentialsId: 'Testenv_Key', keyFileVariable: 'SSH_KEY')]) {
-        sh '''
-            chmod 600 ${SSH_KEY}
-            
-            # Create a script file to run everything in one session
-            cat > /tmp/deploy_ui_tests.sh << 'EOF'
-            #!/bin/bash
-            set -e
-            
-            # Create project directory
-            mkdir -p /home/ubuntu/star-agile-insurance-project/
-            
-            # Update and install dependencies
-            sudo apt update
-            sudo DEBIAN_FRONTEND=noninteractive apt install -y google-chrome-stable unzip wget
-            
-            # Install ChromeDriver
-            wget -q https://chromedriver.storage.googleapis.com/114.0.5735.90/chromedriver_linux64.zip
-            unzip -o chromedriver_linux64.zip
-            sudo mv chromedriver /usr/bin/
-            sudo chmod +x /usr/bin/chromedriver
-            
-            # Clean up
-            rm -rf /home/ubuntu/star-agile-insurance-project/*
-            
-            # Exit remote script
-            EOF
+    stage('Run UI Tests on EC2') {
+        withCredentials([sshUserPrivateKey(credentialsId: 'Testenv_Key', keyFileVariable: 'SSH_KEY')]) {
+            sh '''
+                set -x
+                chmod 600 ${SSH_KEY}
+                echo "[STEP] Creating deploy_ui_tests.sh script"
+                cat > /tmp/deploy_ui_tests.sh << 'EOF'
+                #!/bin/bash
+                set -e
+                echo "[STEP] Creating project directory"
+                mkdir -p /home/ubuntu/star-agile-insurance-project/
+                # Chrome is already installed, skip installation
+                echo "[STEP] Downloading and installing ChromeDriver"
+                wget -q https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/141.0.7390.76/linux64/chromedriver-linux64.zip
+                unzip -o chromedriver-linux64.zip
+                sudo mv chromedriver-linux64/chromedriver /usr/bin/chromedriver
+                sudo chmod +x /usr/bin/chromedriver
+                echo "[STEP] Cleaning up project directory"
+                rm -rf /home/ubuntu/star-agile-insurance-project/*
+                echo "[STEP] Setup script completed"
+                EOF
 
-            # Copy and run setup script
-            scp -o StrictHostKeyChecking=no -o ConnectTimeout=30 -i ${SSH_KEY} /tmp/deploy_ui_tests.sh ubuntu@13.126.40.86:/tmp/
-            ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30 -i ${SSH_KEY} ubuntu@13.126.40.86 "chmod +x /tmp/deploy_ui_tests.sh && /tmp/deploy_ui_tests.sh"
-            
-            # Copy project
-            scp -o StrictHostKeyChecking=no -o ConnectTimeout=30 -i ${SSH_KEY} -r . ubuntu@13.126.40.86:/home/ubuntu/star-agile-insurance-project/
-            
-            # Run tests
-            ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30 -i ${SSH_KEY} ubuntu@13.126.40.86 "
-                cd /home/ubuntu/star-agile-insurance-project
-                export TEST_ENV_URL=http://13.126.40.86:8080
-                timeout 600 mvn verify -DskipUnitTests=true  # 10 minute timeout
-            "
-        '''
+                echo "[STEP] Copying setup script to EC2"
+                scp -o StrictHostKeyChecking=no -o ConnectTimeout=30 -i ${SSH_KEY} /tmp/deploy_ui_tests.sh ubuntu@13.126.40.86:/tmp/
+                echo "[STEP] Running setup script on EC2"
+                ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30 -i ${SSH_KEY} ubuntu@13.126.40.86 "chmod +x /tmp/deploy_ui_tests.sh && /tmp/deploy_ui_tests.sh"
+                echo "[STEP] Copying project to EC2"
+                scp -o StrictHostKeyChecking=no -o ConnectTimeout=30 -i ${SSH_KEY} -r . ubuntu@13.126.40.86:/home/ubuntu/star-agile-insurance-project/
+                echo "[STEP] Running UI tests on EC2"
+                ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30 -i ${SSH_KEY} ubuntu@13.126.40.86 "\
+                    cd /home/ubuntu/star-agile-insurance-project && \
+                    export TEST_ENV_URL=http://13.126.40.86:8080 && \
+                    export CHROMEDRIVER_PATH=/usr/bin/chromedriver && \
+                    export CHROME_BINARY_PATH=/usr/bin/google-chrome && \
+                    timeout 600 mvn test -Dtest=InsureMeUITest\
+                "
+            '''
+        }
     }
-}
 
     stage('Deploy to Production') {
         input message: '✅ Selenium tests passed. Proceed to Production Deployment?'
