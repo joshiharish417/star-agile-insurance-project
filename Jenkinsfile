@@ -60,16 +60,16 @@ node {
 
     stage('Deploy to Test Environment') {
         echo "🚀 Deploying to test environment using Ansible..."
-        withCredentials([sshUserPrivateKey(credentialsId: 'Testenv_Key', keyFileVariable: 'EC2_SSH_KEY_TEST')]) {
-            ansiblePlaybook(
-                installation: 'ansible',
-                playbook: 'ansible-playbook.yml',
-                inventory: 'inventory.ini',
-                disableHostKeyChecking: true,
-                become: true,
-                becomeUser: 'root',
-                extras: "--private-key=${EC2_SSH_KEY_TEST} -e env=test -e docker_image=joshiharish417/insure-me:${tagName}"
-            )
+        sshagent(['Testenv_Key']) {
+        sh '''
+            ansible-playbook \
+                -i inventory.ini \
+                ansible-playbook.yml \
+                --private-key=$SSH_AUTH_SOCK \
+                -e env=test \
+                -e docker_image=joshiharish417/insure-me:${tagName} \
+                --become --become-user=root
+        '''
         }
     }
 
