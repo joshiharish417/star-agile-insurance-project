@@ -10,11 +10,11 @@
     <version>1.0</version>
     <packaging>jar</packaging>
 
-    <!-- Add Spring Boot Parent to manage versions automatically -->
+    <!-- Use Spring Boot 3.x for Java 21 compatibility -->
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.7.0</version>
+        <version>3.2.0</version>
         <relativePath/>
     </parent>
 
@@ -26,13 +26,26 @@
 
     <dependencies>
 
-        <!-- ✅ Spring Boot Starter -->
+        <!-- ✅ Spring Boot Starter Web (for REST controllers) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter</artifactId>
+            <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
-        <!-- ✅ Spring Boot Test (for InsureMeApplicationTest.java) -->
+        <!-- ✅ Spring Boot Starter Data JPA (for repositories & entities) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+
+        <!-- ✅ H2 Database (in-memory database for testing) -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- ✅ Spring Boot Starter Test (for InsureMeApplicationTest.java) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
