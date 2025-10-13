@@ -59,53 +59,54 @@ node {
     }
 
     stage('Deploy to Test Environment') {
-        echo "🚀 Deploying to test environment using Ansible..."
-        sshagent(['Testenv_Key']) {
-        sh '''
-            ansible-playbook \
-                -i inventory.ini \
-                ansible-playbook.yml \
-                --private-key=$SSH_AUTH_SOCK \
-                -e env=test \
-                -e docker_image=joshiharish417/insure-me:${tagName} \
-                --become --become-user=root
-        '''
-        }
+    echo "🚀 Deploying to test environment using Ansible..."
+    withCredentials([sshUserPrivateKey(credentialsId: 'Testenv_Key', keyFileVariable: 'SSH_KEY')]) {
+        ansiblePlaybook(
+            installation: 'ansible',
+            playbook: 'ansible-playbook.yml',
+            inventory: 'inventory.ini',
+            disableHostKeyChecking: true,
+            become: true,
+            becomeUser: 'root',
+            extras: "--private-key=${SSH_KEY} -e env=test -e docker_image=joshiharish417/insure-me:${tagName}"
+        )
     }
+}
 
-    stage('Run UI Tests on EC2') {
-        sshagent(['EC2_SSH_KEY_TEST']) {
-            sh '''
-                echo "Installing Chrome + ChromeDriver..."
-                ssh -o StrictHostKeyChecking=no ubuntu@13.126.40.86 "
-                    sudo apt update &&
-                    sudo apt install -y google-chrome-stable unzip wget || true
-                "
-            '''
-            
-            sh '''
-                ssh -o StrictHostKeyChecking=no ubuntu@13.126.40.86 "
-                    wget -q https://chromedriver.storage.googleapis.com/114.0.5735.90/chromedriver_linux64.zip &&
-                    unzip -o chromedriver_linux64.zip &&
-                    sudo mv chromedriver /usr/bin/ &&
-                    sudo chmod +x /usr/bin/chromedriver
-                "
-            '''
-            
-            sh '''
-                echo "Copying project to EC2..."
-                scp -o StrictHostKeyChecking=no -r . ubuntu@13.126.40.86:/home/ubuntu/star-agile-insurance-project/
-            '''
-            
-            sh '''
-                echo "Running UI Tests..."
-                ssh -o StrictHostKeyChecking=no ubuntu@13.126.40.86 "
-                    cd /home/ubuntu/star-agile-insurance-project &&
-                    export TEST_ENV_URL=http://13.126.40.86:8080 &&
-                    mvn verify -DskipUnitTests=true
-                "
-            '''
-        }
+stage('Run UI Tests on EC2') {
+    withCredentials([sshUserPrivateKey(credentialsId: 'Testenv_Key', keyFileVariable: 'SSH_KEY')]) {
+        sh '''
+            chmod 600 ${SSH_KEY}
+            echo "Installing Chrome + ChromeDriver..."
+            ssh -o StrictHostKeyChecking=no -i ${SSH_KEY} ubuntu@13.126.40.86 "
+                sudo apt update &&
+                sudo apt install -y google-chrome-stable unzip wget || true
+            "
+        '''
+        
+        sh '''
+            ssh -o StrictHostKeyChecking=no -i ${SSH_KEY} ubuntu@13.126.40.86 "
+                wget -q https://chromedriver.storage.googleapis.com/114.0.5735.90/chromedriver_linux64.zip &&
+                unzip -o chromedriver_linux64.zip &&
+                sudo mv chromedriver /usr/bin/ &&
+                sudo chmod +x /usr/bin/chromedriver
+            "
+        '''
+        
+        sh '''
+            echo "Copying project to EC2..."
+            scp -o StrictHostKeyChecking=no -i ${SSH_KEY} -r . ubuntu@13.126.40.86:/home/ubuntu/star-agile-insurance-project/
+        '''
+        
+        sh '''
+            echo "Running UI Tests..."
+            ssh -o StrictHostKeyChecking=no -i ${SSH_KEY} ubuntu@13.126.40.86 "
+                cd /home/ubuntu/star-agile-insurance-project &&
+                export TEST_ENV_URL=http://13.126.40.86:8080 &&
+                mvn verify -DskipUnitTests=true
+            "
+        '''
+    }
 }
 
     stage('Deploy to Production') {
