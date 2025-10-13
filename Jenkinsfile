@@ -74,7 +74,7 @@ node {
     }
 
     stage('Run UI Tests on EC2') {
-        sshagent(['ec2-ssh-key-test']) {
+        sshagent(['EC2_SSH_KEY_TEST']) {
             sh '''
                 echo "Installing Chrome + ChromeDriver..."
                 ssh -o StrictHostKeyChecking=no ubuntu@13.126.40.86 "
