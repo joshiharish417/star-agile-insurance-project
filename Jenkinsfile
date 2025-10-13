@@ -78,34 +78,42 @@ stage('Run UI Tests on EC2') {
         sh '''
             chmod 600 ${SSH_KEY}
             
-            echo "Setting up EC2 instance for UI tests..."
-            ssh -o StrictHostKeyChecking=no -i ${SSH_KEY} ubuntu@13.126.40.86 "
+            # Create a script file to run everything in one session
+            cat > /tmp/deploy_ui_tests.sh << 'EOF'
+            #!/bin/bash
+            set -e
+            
+            # Create project directory
+            mkdir -p /home/ubuntu/star-agile-insurance-project/
+            
+            # Update and install dependencies
+            sudo apt update
+            sudo DEBIAN_FRONTEND=noninteractive apt install -y google-chrome-stable unzip wget
+            
+            # Install ChromeDriver
+            wget -q https://chromedriver.storage.googleapis.com/114.0.5735.90/chromedriver_linux64.zip
+            unzip -o chromedriver_linux64.zip
+            sudo mv chromedriver /usr/bin/
+            sudo chmod +x /usr/bin/chromedriver
+            
+            # Clean up
+            rm -rf /home/ubuntu/star-agile-insurance-project/*
+            
+            # Exit remote script
+            EOF
 
-                # Clean up any existing content
-                rm -rf /home/ubuntu/star-agile-insurance-project/*
-                
-                # Create project directory
-                mkdir -p /home/ubuntu/star-agile-insurance-project/
-                
-                # Update and install dependencies
-                sudo apt update
-                sudo apt install -y google-chrome-stable unzip wget || true
-                
-                # Install ChromeDriver
-                wget -q https://chromedriver.storage.googleapis.com/114.0.5735.90/chromedriver_linux64.zip
-                unzip -o chromedriver_linux64.zip
-                sudo mv chromedriver /usr/bin/
-                sudo chmod +x /usr/bin/chromedriver
-            "
+            # Copy and run setup script
+            scp -o StrictHostKeyChecking=no -o ConnectTimeout=30 -i ${SSH_KEY} /tmp/deploy_ui_tests.sh ubuntu@13.126.40.86:/tmp/
+            ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30 -i ${SSH_KEY} ubuntu@13.126.40.86 "chmod +x /tmp/deploy_ui_tests.sh && /tmp/deploy_ui_tests.sh"
             
-            echo "Copying project to EC2..."
-            scp -o StrictHostKeyChecking=no -i ${SSH_KEY} -r . ubuntu@13.126.40.86:/home/ubuntu/star-agile-insurance-project/
+            # Copy project
+            scp -o StrictHostKeyChecking=no -o ConnectTimeout=30 -i ${SSH_KEY} -r . ubuntu@13.126.40.86:/home/ubuntu/star-agile-insurance-project/
             
-            echo "Running UI Tests..."
-            ssh -o StrictHostKeyChecking=no -i ${SSH_KEY} ubuntu@13.126.40.86 "
+            # Run tests
+            ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30 -i ${SSH_KEY} ubuntu@13.126.40.86 "
                 cd /home/ubuntu/star-agile-insurance-project
                 export TEST_ENV_URL=http://13.126.40.86:8080
-                mvn verify -DskipUnitTests=true
+                timeout 600 mvn verify -DskipUnitTests=true  # 10 minute timeout
             "
         '''
     }
