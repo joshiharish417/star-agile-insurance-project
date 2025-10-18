@@ -32,6 +32,8 @@ public class InsureMeUITest {
         options.addArguments("--no-sandbox");
         options.addArguments("--disable-dev-shm-usage");
         options.addArguments("--disable-gpu");
+        options.addArguments("--disable-software-rasterizer");  // NEW
+        options.addArguments("--remote-debugging-port=9222");    // NEW
         options.addArguments("--window-size=1920,1080");
 
         driver = new ChromeDriver(options);
