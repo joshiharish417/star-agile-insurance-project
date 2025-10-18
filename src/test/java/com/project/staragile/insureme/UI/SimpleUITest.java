@@ -6,6 +6,8 @@ import org.junit.jupiter.api.Test;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.remote.DesiredCapabilities;
+import org.openqa.selenium.remote.RemoteWebDriver;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
@@ -15,19 +17,14 @@ public class SimpleUITest {
     private static final String BASE_URL = System.getenv().getOrDefault("TEST_ENV_URL", "http://localhost:8081");
 
     @BeforeAll
-    public static void setup() {
-        System.setProperty("webdriver.chrome.driver", "/usr/local/bin/chromedriver");
-
+    public static void setup() throws Exception {
         ChromeOptions options = new ChromeOptions();
-        options.addArguments("--headless=new");  // run in headless mode
+        options.addArguments("--headless"); // optional
         options.addArguments("--no-sandbox");
         options.addArguments("--disable-dev-shm-usage");
-        options.addArguments("--disable-gpu");
-        options.addArguments("--window-size=1920,1080");
 
-        driver = new ChromeDriver(options);
-    }
-
+        driver = new RemoteWebDriver(new URL("http://localhost:4444/wd/hub"), options);
+}
     @Test
     public void testOpenHomePage() {
         driver.get(BASE_URL + "/");
