@@ -34,9 +34,9 @@ public class InsureMeUITest {
         options.addArguments("--disable-dev-shm-usage");
         options.addArguments("--disable-gpu");
         options.addArguments("--window-size=1920,1080");
-        options.setExperimentalOption("debuggerAddress", "localhost:40321");
-        driver = new ChromeDriver(new URL("http://localhost:40321"),options);
-
+        // options.setExperimentalOption("debuggerAddress", "localhost:40321");
+        // driver = new ChromeDriver(new URL("http://localhost:40321"),options);
+        driver = new ChromeDriver(new URL(options);
         try {
             Files.createDirectories(Paths.get("target/screenshots"));
         } catch (IOException e) {
