@@ -25,8 +25,6 @@ public class InsureMeUITest {
 
     @BeforeAll
     public static void setup() {
-        System.setProperty("webdriver.chrome.driver", "chromedriver");
-
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--headless=new");
         options.addArguments("--no-sandbox");
