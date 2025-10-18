@@ -52,14 +52,20 @@
         </dependency>
 
         <!-- ✅ Selenium -->
-        <dependency>
-        <groupId>org.seleniumhq.selenium</groupId>
-        <artifactId>selenium-java</artifactId>
-        <version>4.22.0</version>
-        <scope>test</scope>
-    </dependency>
+         <dependency>
+                  <groupId>org.seleniumhq.selenium</groupId>
+                 <artifactId>selenium-java</artifactId>
+                 <version>4.22.0</version>
+                 <scope>test</scope>
+         </dependency>
+         <!-- ✅ Explicit Selenium Manager -->
+         <dependency>
+             <groupId>org.seleniumhq.selenium</groupId>
+             <artifactId>selenium-manager</artifactId>
+             <version>4.22.0</version>
+             <scope>test</scope>
+         </dependency>
 </dependencies>
-
     <build>
         <plugins>
             <!-- ✅ Maven Surefire Plugin -->
