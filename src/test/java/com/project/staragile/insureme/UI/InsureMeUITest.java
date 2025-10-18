@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class InsureMeUITest {
 
     private static WebDriver driver;
-    private static final String BASE_URL = System.getenv().getOrDefault("TEST_ENV_URL", "http://localhost:8080");
+    private static final String BASE_URL = System.getenv().getOrDefault("TEST_ENV_URL", "http://localhost:8081");
 
     @BeforeAll
     public static void setup() {
