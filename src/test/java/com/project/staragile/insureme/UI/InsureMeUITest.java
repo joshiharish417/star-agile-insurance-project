@@ -25,6 +25,7 @@ public class InsureMeUITest {
 
     @BeforeAll
     public static void setup() {
+        System.setProperty("selenium.manager.log.level", "TRACE");
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--headless=new");
         options.addArguments("--no-sandbox");
